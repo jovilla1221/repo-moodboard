@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pinterest Moodboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <style>
+    :root {
+      --cream: #faf5f7;
+      --blush: #f5e1e4;
+      --rose: #c4898f;
+      --rose-dark: #a66d74;
+      --gold: #c9a06c;
+      --ink: #4a2c35;
+      --muted: rgba(74,44,53,0.55);
+      --card-bg: #fff;
+      --shadow: 0 4px 16px rgba(196,137,143,0.12);
+      --shadow-hover: 0 8px 28px rgba(196,137,143,0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--cream);
+      font-family: 'Quicksand', sans-serif;
+      color: var(--ink);
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(250,245,247,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--blush);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: 'Great Vibes', cursive;
+      font-size: 2rem;
+      color: var(--rose-dark);
+      font-weight: 400;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+    .btn-primary {
+      background: var(--rose);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .btn-primary:hover { background: var(--rose-dark); box-shadow: var(--shadow-hover); }
+
+    .btn-secondary {
+      background: var(--blush);
+      color: var(--ink);
+    }
+    .btn-secondary:hover { background: var(--rose); color: #fff; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--blush);
+    }
+    .btn-ghost:hover { background: var(--blush); }
+
+    /* Input area */
+    .input-bar {
+      display: flex;
+      gap: 10px;
+      padding: 16px 20px;
+      flex-wrap: wrap;
+      background: var(--cream);
+    }
+
+    .url-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px 16px;
+      border: 2px solid var(--blush);
+      border-radius: 12px;
+      font-family: 'Quicksand', sans-serif;
+      font-size: 0.9rem;
+      background: #fff;
+      color: var(--ink);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .url-input:focus {
+      outline: none;
+      border-color: var(--rose);
+      box-shadow: 0 0 0 3px rgba(196,137,143,0.15);
+    }
+    .url-input::placeholder { color: var(--muted); }
+
+    /* Grid */
+    main { padding: 0 20px 40px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .pin {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      cursor: grab;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .pin:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+    .pin:active { cursor: grabbing; }
+    .pin.sortable-ghost { opacity: 0.4; transform: scale(1.02); }
+
+    .pin img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      display: block;
+    }
+
+    .pin-info {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pin-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      line-height: 1.3;
+      color: var(--ink);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .pin-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pin-tag {
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 4px 10px;
+      background: var(--blush);
+      color: var(--rose-dark);
+      border-radius: 999px;
+    }
+
+    .pin-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      background: var(--blush);
+      color: var(--ink);
+      border: none;
+    }
+    .icon-btn:hover { background: var(--rose); color: #fff; }
+
+    .drag-handle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      opacity: 0;
+      transition: opacity 0.15s;
+      box-shadow: var(--shadow);
+      z-index: 10;
+    }
+    .pin:hover .drag-handle { opacity: 1; }
+    .drag-handle:active { cursor: grabbing; }
+
+    /* Empty state */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state svg { width: 80px; height: 80px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state p { font-size: 1.1rem; margin: 0; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      padding: 14px 24px;
+      background: var(--ink);
+      color: var(--cream);
+      border-radius: 12px;
+      box-shadow: var(--shadow-hover);
+      font-weight: 500;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+      z-index: 1000;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: var(--rose-dark); }
+
+    /* Loading overlay for export */
+    .export-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(74,44,53,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .export-overlay.active { opacity: 1; pointer-events: auto; }
+    .export-spinner {
+      width: 56px;
+      height: 56px;
+      border: 4px solid var(--blush);
+      border-top-color: var(--rose);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      header { padding: 12px 16px; }
+      h1 { font-size: 1.6rem; }
+      .input-bar { padding: 12px 16px; }
+      main { padding: 0 16px 30px; }
+      .grid { grid-template-columns: 1fr; gap: 16px; }
+      .toast { left: 16px; right: 16px; bottom: 16px; text-align: center; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Moodboard</h1>
+    <div class="header-actions">
+      <button class="btn-secondary" id="clearBtn" title="Clear all pins">🗑️ Clear</button>
+      <button class="btn-primary" id="exportBtn" title="Export as PNG">📷 Export PNG</button>
+    </div>
+  </header>
+
+  <div class="input-bar">
+    <input type="url" class="url-input" id="urlInput" placeholder="Paste image URL (Unsplash, Pinterest, etc.) and press Enter">
+    <button class="btn-primary" id="addBtn">Add Pin</button>
+  </div>
+
+  <main>
+    <div class="grid" id="grid"></div>
+    <div class="empty-state" id="emptyState" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14"/>
+        <polyline points="17 21 12 16 7 21"/>
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+      </svg>
+      <p>Drop an image URL to start your moodboard ✨</p>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <div class="export-overlay" id="exportOverlay"><div class="export-spinner"></div></div>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const emptyState = document.getElementById('emptyState');
+    const urlInput = document.getElementById('urlInput');
+    const addBtn = document.getElementById('addBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const toast = document.getElementById('toast');
+    const exportOverlay = document.getElementById('exportOverlay');
+
+    let pins = JSON.parse(localStorage.getItem('moodboard-pins') || '[]');
+
+    function save() {
+      localStorage.setItem('moodboard-pins', JSON.stringify(pins));
+    }
+
+    function showToast(msg, success = false) {
+      toast.textContent = msg;
+      toast.className = 'toast' + (success ? ' success' : '');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function createPinEl(pin, index) {
+      const div = document.createElement('div');
+      div.className = 'pin';
+      div.dataset.id = pin.id;
+      div.innerHTML = `
+        <div class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);">
+            <circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/>
+            <circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/>
+            <circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/>
+          </svg>
+        </div>
+        <img src="${pin.url}" alt="${pin.title || 'Moodboard pin'}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${pin.id}/400/533'; this.alt='Placeholder image'">
+        <div class="pin-info">
+          <div class="pin-title">${pin.title || 'Untitled'}</div>
+          <div class="pin-meta">
+            ${pin.tags.map(t => `<span class="pin-tag">#${t}</span>`).join('')}
+          </div>
+          <div class="pin-actions">
+            <button class="icon-btn" title="Copy URL" onclick="copyUrl('${pin.url}')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <button class="icon-btn" title="Remove" onclick="removePin('${pin.id}')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+      return div;
+    }
+
+    function render() {
+      grid.innerHTML = '';
+      if (pins.length === 0) {
+        emptyState.hidden = false;
+      } else {
+        emptyState.hidden = true;
+        pins.forEach((pin, i) => grid.appendChild(createPinEl(pin, i)));
+      }
+      initSortable();
+    }
+
+    function initSortable() {
+      new Sortable(grid, {
+        animation: 200,
+        handle: '.drag-handle',
+        ghostClass: 'sortable-ghost',
+        onEnd: evt => {
+          const [moved] = pins.splice(evt.oldIndex, 1);
+          pins.splice(evt.newIndex, 0, moved);
+          save();
+        }
+      });
+    }
+
+    function addPin(url) {
+      try {
+        const u = new URL(url);
+        const hostname = u.hostname.replace('www.', '');
+        const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        const pin = {
+          id,
+          url,
+          title: hostname,
+          tags: ['mood']
+        };
+        pins.unshift(pin);
+        save();
+        render();
+        showToast('Pin added! ✨', true);
+      } catch {
+        showToast('Invalid URL');
+      }
+    }
+
+    window.removePin = function(id) {
+      pins = pins.filter(p => p.id !== id);
+      save();
+      render();
+      showToast('Removed', true);
+    };
+
+    window.copyUrl = function(url) {
+      navigator.clipboard.writeText(url);
+      showToast('URL copied!', true);
+    };
+
+    addBtn.addEventListener('click', () => {
+      const url = urlInput.value.trim();
+      if (url) { addPin(url); urlInput.value = ''; }
+    });
+
+    urlInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { addBtn.click(); }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (pins.length && confirm('Clear all pins?')) {
+        pins = [];
+        save();
+        render();
+        showToast('Cleared', true);
+      }
+    });
+
+    exportBtn.addEventListener('click', async () => {
+      if (pins.length === 0) { showToast('Nothing to export'); return; }
+      exportOverlay.classList.add('active');
+      try {
+        const canvas = await html2canvas(grid, {
+          backgroundColor: '#faf5f7',
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          onclone: doc => {
+            doc.querySelectorAll('.drag-handle, .pin-actions').forEach(el => el.style.display = 'none');
+          }
+        });
+        const link = document.createElement('a');
+        link.download = `moodboard-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('Exported as PNG! 📷', true);
+      } catch (err) {
+        console.error(err);
+        showToast('Export failed');
+      } finally {
+        exportOverlay.classList.remove('active');
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
